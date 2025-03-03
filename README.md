@@ -2,18 +2,18 @@
 
 ## Configure publisher and subscriber nodes
 
-Create a private network
+### Create a private network
 ```
 gcloud compute networks create replnet --subnet-mode=custom
 ```
 
-Create two subnets, one for publisher instance and the other for subscriber instance
+### Create two subnets, one for publisher instance and the other for subscriber instance
 ```
 gcloud compute networks subnets create pub-subnet --network=replnet --region="europe-west9" --range=172.16.0.0/24
 gcloud compute networks subnets create sub-subnet --network=replnet --region="europe-west1" --range=172.20.0.0/20
 ```
 
-Create firewall rule to allow ssh traffic
+### Create firewall rule to allow ssh traffic
 ```
 gcloud compute firewall-rules create repl-allow-ssh \
 	--direction=INGRESS \
@@ -24,7 +24,7 @@ gcloud compute firewall-rules create repl-allow-ssh \
 	--source-ranges=0.0.0.0/0
 ```
 
-Create a firewall to accept incoming trafic from subscriber nodeon port 5432
+### Create a firewall to accept incoming trafic from subscriber nodeon port 5432
 ```
 gcloud compute firewall-rules create repl-allow-sub \
 	--direction=INGRESS \
@@ -35,7 +35,7 @@ gcloud compute firewall-rules create repl-allow-sub \
 	--source-ranges=172.20.0.0/20
 ```
 
-Create Subscriber node
+### Create Subscriber node
 ```
 gcloud compute instances create subscription-vm \
     --zone="europe-west1-c" \
@@ -45,7 +45,7 @@ gcloud compute instances create subscription-vm \
     --no-address
 ```
 
-Create Publisher node
+### Create Publisher node
 ```
 gcloud compute instances create publication-vm \
     --zone="europe-west9-b" \
@@ -55,21 +55,21 @@ gcloud compute instances create publication-vm \
     --no-address
 ```
 
-Create a router for subscriber (need by NAT)
+### Create a router for subscriber (need by NAT)
 ```
 gcloud compute routers create sub-nat-router \
     --network replnet \
     --region europe-west1
 ```
 
-Create a router for publisher (need by NAT)
+### Create a router for publisher (need by NAT)
 ```
 gcloud compute routers create pub-nat-router \
     --network replnet \
     --region europe-west9
 ```
 
-Create a Nat for subscriber
+### Create a Nat for subscriber
 ```
 gcloud compute routers nats create sub-nat-config \
     --router-region europe-west1 \
@@ -78,7 +78,7 @@ gcloud compute routers nats create sub-nat-config \
      --auto-allocate-nat-external-ips
 ```
 
-Create a Nat for subscriber
+### Create a Nat for subscriber
 ```
 gcloud compute routers nats create pub-nat-config \
     --router-region europe-west9 \

@@ -24,7 +24,7 @@ gcloud compute firewall-rules create repl-allow-ssh \
 	--source-ranges=0.0.0.0/0
 ```
 
-### Create a firewall to accept incoming trafic from subscriber nodeon port 5432
+### Create a firewall to accept incoming trafic from subscriber node on port 5432
 ```
 gcloud compute firewall-rules create repl-allow-sub \
 	--direction=INGRESS \
@@ -87,7 +87,46 @@ gcloud compute routers nats create pub-nat-config \
     --auto-allocate-nat-external-ips
 ```
 
-## Configure Postgres on publisher and subscriber nodes
+## Configure Postgres on publisher node
+
+### Install PostgreSQL 17 on Publisher instance
+
+Do not forget to ssh into publisher instance before you proceed
+```
+sudo apt install curl ca-certificates vim
+sudo install -d /usr/share/postgresql-common/pgdg
+sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+sudo sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+sudo apt update
+sudo apt -y install postgresql
+``` 
+
+### Start PostgreSQL
+```
+systemctl status postgresql@17-main.service
+sudo systemctl start postgresql@17-main.service
+```
+
+### Server settings
+```
+sudo vim $PGDATA/postgresql.conf
+	listen_addresses = 'IP of publisher' #What IP address(es) to listen on
+	wal_level = logical                  #Set wal level to logical to logical replical replication
+```
+
+### Allow connection from subscriber instance
+the below conf will allow any user from any host in the 172.20.0.0/20 subnet (subscriber subnet) to connect to any database
+on this PostgreSQL installation using password of type scram-sha-256
+```
+sudo vim $PGDATA/pg_hba.conf 
+	# TYPE		DATABASE		USER		ADDRESS			        METHOD
+	  host		all			    all		    '172.20.0.0/20'		    scram-sha-256
+```
+
+
+
+## Configure Postgres on subscriber node
+
 
 ## Test and monitor the replication
 

@@ -304,36 +304,39 @@ see screen shot below
 > SELECT * FROM pizza_types  ;
 > ```
 
-Update operation on pizzas table
-update data from the publisher instance
-```
-UPDATE pizzas SET price = 18 WHERE pizza_id = 'classic_dlx_l';
-```
-check the new updated data on the subscriber instance 
-```
-SELECT * FROM pizzas ;
-```
+- Update operation on pizzas table
+>
+> update data from the publisher instance
+> ```
+> UPDATE pizzas SET price = 18 WHERE pizza_id = 'classic_dlx_l';
+> ```
+> check the new updated data on the subscriber instance 
+> ```
+> SELECT * FROM pizzas ;
+> ```
 
-delete operation on order_details table
-delete data from the publisher instance 
-```
-SELECT COUNT(*) FROM order_details ;
-DELETE FROM order_details WHERE order_details_id > 900;
-```
-check the deleted data on the subscriber instance 
-```
-SELECT * FROM order_details ;
-```
+- Delete operation on order_details table
+>
+> delete data from the publisher instance 
+> ```
+> SELECT COUNT(*) FROM order_details ;
+> DELETE FROM order_details WHERE order_details_id > 900;
+> ```
+> check the deleted data on the subscriber instance 
+> ```
+> SELECT * FROM order_details ;
+> ```
 
-truncate operation on order_details table
-truncate order_details from the publisher instance 
-```
-SELECT COUNT(*) FROM order_details ;
-TRUNCATE TABLE order_details;
-```
-check order_details is truncated on the subscriber instance 
-```
-SELECT * FROM order_details ;
-```
+- Truncate operation on order_details table
+>
+> truncate order_details from the publisher instance 
+> ```
+> SELECT COUNT(*) FROM order_details ;
+> TRUNCATE TABLE order_details;
+> ```
+> check order_details is truncated on the subscriber instance 
+> ```
+> SELECT * FROM order_details ;
+> ```
 
 ## Delete all created resources

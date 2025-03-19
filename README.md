@@ -288,7 +288,7 @@ see screen shot below
 
 ## Test and monitor the replication
 
-### Testing replication
+### Testing the replication
 - Insert operation on pizza_types table
 >
 > insert data from the publisher instance 
@@ -339,4 +339,39 @@ see screen shot below
 > SELECT * FROM order_details ;
 > ```
 
-## Delete all created resources
+### Monitoring the replication
+We need a way to monitor replication for faillure or failling behind from the primary database.
+Issue can happen due to multiple reasons:
+- publisher instance has heavy load
+- subscriber instance has heavy load 
+- network issues or other
+We will focus on two primary views that Postges offers: pg_stat_replication and pg_replication_slots.
+While these views offer everything we need for monitoring, they only provide an instantaneous snapshot of the replication status, so 
+it is advisable to poll all the needed informations from these views on regular interval (e.g. 1h) and store the result in another database.
+And based on the historical data, you can build a dashboard, compute a lag and trigger an alert when the lag reach a predefined threshold.
+
+You can run the SQL below on regular interval to collect the information and compute different type of lags:
+- sending lag could indicate heavy load on publisher
+- receiving lag could indicate network issues or subscriber under heavy load
+- replaying lag could indicate subscriber Under heavy load
+- we use total_lag to trigger an alert when it reaches a threshold of (10GB)
+
+```
+SELECT
+    now() as at
+	, pid
+    , client_addr
+    , client_port
+    , backend_start
+    , state
+	, application_name
+	, pg_wal_lsn_diff(pg_current_wal_lsn(), sent_lsn) as sending_lag
+	, pg_wal_lsn_diff(sent_lsn, flush_lsn) as receiving_lag
+	, pg_wal_lsn_diff(flush_lsn, replay_lsn) as replaying_lag
+	, pg_wal_lsn_diff(pg_current_wal_lsn(), replay_lsn) as total_lag
+FROM pg_stat_replication;
+```
+
+One way of using pg_replication_slots view is to monitor *active* column. based on the Postges documentation, 
+this column is True if the slot is currently actively being used. So you can trigger an alert if this column changes to false.
+Sometime this column may flip between True and false, then it may make sense to trigger the alert when the duration of fliping to false passes some threshold.

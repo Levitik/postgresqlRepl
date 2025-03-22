@@ -98,10 +98,10 @@ sudo install -d /usr/share/postgresql-common/pgdg
 sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
 sudo sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 sudo apt update
-sudo apt -y install postgresql
+sudo apt -y install postgresql-17
 ``` 
 
-### Start PostgreSQL
+### .Check PostgreSQL status and start it if needed
 ```
 systemctl status postgresql@17-main.service
 sudo systemctl start postgresql@17-main.service
@@ -109,7 +109,7 @@ sudo systemctl start postgresql@17-main.service
 
 ### Server settings
 ```
-sudo vim $PGDATA/postgresql.conf
+sudo vim /etc/postgresql/17/main/postgresql.conf
 	listen_addresses = 'IP of publisher' #What IP address(es) to listen on
 	wal_level = logical                  #Set wal level to logical to logical replical replication
 ```
@@ -118,7 +118,7 @@ sudo vim $PGDATA/postgresql.conf
 the below conf will allow any user from any host in the 172.20.0.0/20 subnet (subscriber subnet) to connect to any database
 on this PostgreSQL installation using password of type scram-sha-256
 ```
-sudo vim $PGDATA/pg_hba.conf 
+sudo vim = /etc/postgresql/17/main//pg_hba.conf 
 	# TYPE		DATABASE		USER		ADDRESS			        METHOD
 	  host		all			    all		    '172.20.0.0/20'		    scram-sha-256
 ```
@@ -244,10 +244,10 @@ sudo install -d /usr/share/postgresql-common/pgdg
 sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
 sudo sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 sudo apt update
-sudo apt -y install postgresql
+sudo apt -y install postgresql-17
 ```
 
-### Start PostgreSQL
+### Check PostgreSQL status and start it if needed
 ```
 systemctl status postgresql@17-main.service
 sudo systemctl start postgresql@17-main.service
@@ -257,7 +257,7 @@ sudo systemctl start postgresql@17-main.service
 ```
 sudo su - postgres
 psql
-CREATE DATABASE pub_db;
+CREATE DATABASE sub_db;
 \c sub_db
 ```
 
@@ -279,12 +279,19 @@ SELECT * FROM pizzas;
 
 ### Create subscription 
 ```
-psql
-\c sub_db
 CREATE SUBSCRIPTION mysub CONNECTION 'host=172.16.0.2 dbname=pub_db port=5432 password=secretPassword user=repluser' PUBLICATION mypub;
 ```
-As soon as the postmaster process identify the new subscription, it attach it the to the replication and ant launcher and replication workers copy initial data into the sub_db
-see screen shot below
+As soon as the postmaster process identifies the new subscription, it starts the associated replication launcher. This replication launcher will start one Apply worker. And the 
+Apply worker will create four Tablesync workers to copy initial data from pub_db to sub_db. At this point tables in sub_db should reflect the configuration we defined
+when creating or altering the Publication mysub.
+
+Let check to see if we have the same number of rows in each table from sub_db as what we have in pub_db
+```
+SELECT COUNT(*) FROM orders;
+SELECT COUNT(*) FROM order_details;
+SELECT COUNT(*) FROM pizza_types;
+SELECT COUNT(*) FROM pizzas;
+```
 
 ## Test and monitor the replication
 
@@ -324,7 +331,7 @@ see screen shot below
 > ```
 > check the deleted data on the subscriber instance 
 > ```
-> SELECT * FROM order_details ;
+> SELECT COUNT(*) FROM order_details ;
 > ```
 
 - Truncate operation on order_details table
@@ -336,7 +343,7 @@ see screen shot below
 > ```
 > check order_details is truncated on the subscriber instance 
 > ```
-> SELECT * FROM order_details ;
+> SELECT COUNT(*) FROM order_details ;
 > ```
 
 ### Monitoring the replication

@@ -371,10 +371,9 @@ You can run the SQL below on regular interval to collect the information and com
 - replaying lag could indicate subscriber Under heavy load
 - we use total_lag to trigger an alert when it reaches a threshold of (10GB)
 
-Run this query on publisher instance
+Run this query on publisher instance: 0 or near 0 lag value means everything is good
 
 ```
-\x
 SELECT
     now() as at
 	, pid

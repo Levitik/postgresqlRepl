@@ -360,9 +360,9 @@ Issue can happen due to multiple reasons:
 - subscriber instance has heavy load 
 - network issues or other
 
-We will focus on two primary views that Postges offers: pg_stat_replication and pg_replication_slots.
+We will focus on two primary views that Postgres offers: pg_stat_replication and pg_replication_slots.
 While these views offer everything we need for monitoring, they only provide an instantaneous snapshot of the replication status, so 
-it is advisable to poll all the needed informations from these views on regular interval (e.g. 1h) and store the result in another database.
+it is advisable to pull all the needed informations from these views on regular interval (e.g. 1h) and store the result in another database.
 And based on the historical data, you can build a dashboard, compute a lag and trigger an alert when the lag reach a predefined threshold.
 
 You can run the SQL below on regular interval to collect the information and compute different type of lags:
@@ -371,7 +371,10 @@ You can run the SQL below on regular interval to collect the information and com
 - replaying lag could indicate subscriber Under heavy load
 - we use total_lag to trigger an alert when it reaches a threshold of (10GB)
 
+Run this query on publisher instance
+
 ```
+\x
 SELECT
     now() as at
 	, pid
@@ -387,6 +390,6 @@ SELECT
 FROM pg_stat_replication;
 ```
 
-One way of using pg_replication_slots view is to monitor *active* column. based on the Postges documentation, 
-this column is True if the slot is currently actively being used. So you can trigger an alert if this column changes to false.
+One way of using pg_replication_slots view is to monitor *active* column. based on the Postgres documentation, 
+this column is True if the slot is actively being used. So you can trigger an alert if this column changes to false.
 Sometime this column may flip between True and false, then it may make sense to trigger the alert when the duration of fliping to false passes some threshold.

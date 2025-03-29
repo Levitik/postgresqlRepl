@@ -101,13 +101,14 @@ sudo apt update
 sudo apt -y install postgresql-17
 ``` 
 
-### .Check PostgreSQL status and start it if needed
+### Check PostgreSQL status and start it if needed
 ```
 systemctl status postgresql@17-main.service
 sudo systemctl start postgresql@17-main.service
 ```
 
 ### Server settings
+The below conf set the wal level to logical and the IP address the publisher instance is listening on 
 ```
 sudo vim /etc/postgresql/17/main/postgresql.conf
 	listen_addresses = 'IP of publisher' #What IP address(es) to listen on
@@ -118,9 +119,9 @@ sudo vim /etc/postgresql/17/main/postgresql.conf
 the below conf will allow any user from any host in the 172.20.0.0/20 subnet (subscriber subnet) to connect to any database
 on this PostgreSQL installation using password of type scram-sha-256
 ```
-sudo vim = /etc/postgresql/17/main//pg_hba.conf 
+sudo vim /etc/postgresql/17/main//pg_hba.conf 
 	# TYPE		DATABASE		USER		ADDRESS			        METHOD
-	  host		all			    all		    '172.20.0.0/20'		    scram-sha-256
+	  host		all			    all		    172.20.0.0/20		    scram-sha-256
 ```
 
 ### Restart the server
@@ -128,7 +129,7 @@ sudo vim = /etc/postgresql/17/main//pg_hba.conf
 sudo systemctl restart postgresql@17-main.service
 ```
 
-### Create pub_db database 
+### Create pub_db database and connect to it
 ```
 sudo su - postgres
 psql
@@ -220,6 +221,11 @@ Floor(5 * Random() + 1) as quantity
 FROM Generate_series(1,1000)
 );
 ```
+
+### Check the tables you have just created 
+```
+\dt+
+```
 ### Create a replication user 
 ```
 CREATE ROLE repluser WITH REPLICATION LOGIN PASSWORD 'secretPassword';
@@ -228,6 +234,7 @@ GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO repluser;
 ```
 
 ### Setting up publication
+Create a publication and set up the tables you want share with the subscriber
 ```
 CREATE PUBLICATION mypub;
 ALTER PUBLICATION mypub ADD TABLE orders, order_details, pizzas, pizza_types;
@@ -253,7 +260,7 @@ systemctl status postgresql@17-main.service
 sudo systemctl start postgresql@17-main.service
 ```
 
-### Create sub_db database 
+### Create sub_db database and connect to it 
 ```
 sudo su - postgres
 psql
@@ -352,6 +359,7 @@ Issue can happen due to multiple reasons:
 - publisher instance has heavy load
 - subscriber instance has heavy load 
 - network issues or other
+
 We will focus on two primary views that Postges offers: pg_stat_replication and pg_replication_slots.
 While these views offer everything we need for monitoring, they only provide an instantaneous snapshot of the replication status, so 
 it is advisable to poll all the needed informations from these views on regular interval (e.g. 1h) and store the result in another database.

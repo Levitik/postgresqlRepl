@@ -1,6 +1,6 @@
 # Logical data replication with PostgreSQL
 
-## Configure publisher and subscriber nodes
+## Configure publisher and subscriber nodes using cloudshell
 
 ### Create a private network
 ```
@@ -392,3 +392,18 @@ FROM pg_stat_replication;
 One way of using pg_replication_slots view is to monitor *active* column. based on the Postgres documentation, 
 this column is True if the slot is actively being used. So you can trigger an alert if this column changes to false.
 Sometime this column may flip between True and false, then it may make sense to trigger the alert when the duration of fliping to false passes some threshold.
+
+### delete the resources created using cloudshell
+```
+echo "yes" | gcloud compute instances delete publication-vm --zone=europe-west9-b
+echo "yes" | gcloud compute instances delete subscription-vm --zone=europe-west1-c
+echo "yes" | gcloud compute routers nats delete sub-nat-config --router=sub-nat-router --region=europe-west1
+echo "yes" | gcloud compute routers nats delete pub-nat-config --router=pub-nat-router --region=europe-west9
+echo "yes" | gcloud compute routers delete sub-nat-router --region=europe-west1
+echo "yes" | gcloud compute routers delete pub-nat-router --region=europe-west9
+echo "yes" | gcloud compute firewall-rules delete repl-allow-ssh
+echo "yes" | gcloud compute firewall-rules delete repl-allow-sub
+echo "yes" | gcloud compute networks subnets delete pub-subnet --region=europe-west9
+echo "yes" | gcloud compute networks subnets delete sub-subnet --region=europe-west1
+echo "yes" | gcloud compute networks delete replnet 
+```
